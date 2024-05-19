@@ -4,6 +4,7 @@ import os
 from glob import glob
 from astropy.io import fits
 
+
 with open('user_input.txt', 'r') as file:
     lines = file.readlines()
 

@@ -5,7 +5,7 @@ from glob import glob
 import os
 import user_call
 import bias_combine
-import flat_combine
+
 
 
 
@@ -54,6 +54,7 @@ fits.writeto(bias_combine.output_filename, bias_combine.final_image, header= bia
 
 
 #----------------------------Flat combine---------------------------------
+import flat_combine
 flat_combine_dict = {
     'median': flat_combine.median,
     'average': flat_combine.average
