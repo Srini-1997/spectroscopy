@@ -1,0 +1,3 @@
+/home/srinivas/Documents/observation_data_copy/Test/source_1
+bias*
+hal*
