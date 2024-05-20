@@ -1,6 +1,10 @@
 from astropy.io import fits
 import os 
 import numpy as np
+import statistics
+from scipy.optimize import curve_fit
+from scipy.interpolate import UnivariateSpline
+from numpy.polynomial import Legendre, Chebyshev
 import matplotlib.pyplot as plt
 plt.style.use('dark_background')
 
@@ -14,21 +18,47 @@ header = fits.open(mflat)[0].header
 xpixels = header['NAXIS1']
 ypixels = header['NAXIS2']
 
+def spline(x, y, order):
+    s = UnivariateSpline(x, y, k=order)
+    return s(x)
+def legendre(x, y, order):
+    l = Legendre.fit(x, y, order)
+    return l(x)
+
+def chebyshev(x, y, order):
+    c = Chebyshev.fit(x, y, order)
+    return c(x)
+
+function_map = {
+    'spline': spline,
+    'legendre': legendre,
+    'chebyshev': chebyshev
+}
+
 #parameters= naverage, function, order, lreject, hreject, iter
-def response(data, parameters):
+def response(data, naverage, function,order, lreject, hreject, iter):
     normalised_data = np.mean(data, axis=1)
     pixels = np.arange(0,ypixels,1)
-    naverage = parameters['naverage']
-    function = parameters['function']
-    order = parameters['order']
-    lreject = parameters['lreject']
-    hreject = parameters['hreject']
-    iter = parameters['iter']
-    normalised_data = np.mean(data, axis=1)
+    sample_points = []
+    for i in range(0,len(normalised_data),abs(int(naverage))):
+        while True:
+            if naverage > 0:
+                sample_points.append(np.mean(normalised_data[i:i+int(naverage)]))
+                break
+            elif naverage < 0 :
+                sample_points.append(statistics.median(normalised_data[i:i+abs(int(naverage))]))
+                break
+            else :
+                print("Enter either a positive or negative number")
+                naverage = input("naverage: ")
+                continue
+    sample_pixels = np.arange(0,ypixels,abs(int(naverage)))
+    popt, pcov = curve_fit(function_map[function], sample_pixels, sample_points)
+
     
-    while True:
-        interactive_mode = input("Do yo want to fit inetractively ? (y/n): ")
-        if interactive_mode == 'y':
+    #while True:
+    #    interactive_mode = input("Do yo want to fit inetractively ? (y/n): ")
+    #    if interactive_mode == 'y':
             
             
 
@@ -37,15 +67,22 @@ def response(data, parameters):
 data = fits.open(mflat)[0].data
 parameters = {
         "naverage": 1,
-        "function": "spline1",
+        "function": "spline",
         "order": 2,
         "lreject": 3.0,
         "hreject": 3.0,
         "iter": 5
     }
-function_options = ["spline1", "spline3", "chebyshev", "legendre"]
+function_options = ["spline", "chebyshev", "legendre"]
 
-print("Please enter the values for the parameters you want (default values are shown):")
+naverage = parameters['naverage']
+function = parameters['function']
+order = parameters['order']
+lreject = parameters['lreject']
+hreject = parameters['hreject']
+iter = parameters['iter']
+
+print("Do you want to change the parameters (default values are shown):")
 while True:
     for param, default in parameters.items():
         print(f"{param} (default: {default})")

@@ -3,6 +3,7 @@ import numpy as np
 import os
 from glob import glob
 from astropy.io import fits
+import statistics
 
 with open('user_input.txt', 'r') as file:
     lines = file.readlines()
@@ -27,11 +28,7 @@ def median(data_list):
     for i in range(ypixels):
         for j in range(xpixels):
             pixels = [data[i, j] for data in data_list]
-            pixels.sort()
-            if len_bias_files % 2 == 1:
-                final_image[i, j] = pixels[middle_point]
-            else:
-                final_image[i, j] = (pixels[middle_point - 1] + pixels[middle_point]) / 2.0
+            final_image[i,j] = statistics.median(pixels)
     return final_image
 
 def average(data_list):
