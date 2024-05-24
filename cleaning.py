@@ -33,7 +33,7 @@ bias_combine_dict = {
 }
 while True:
     while True:
-        interactive_mode = input("Do you want to proceed in default mode? (y/n): ")
+        interactive_mode = input("Do you want to proceed in parameter changing mode? (y/n): ")
         if interactive_mode=='y':
             bias_combine_mode_input = input("Enter the desired combining mode(median/average) : ")
             break
@@ -73,4 +73,7 @@ while True:
         continue
 fits.writeto(flat_combine.output_filename, flat_combine.final_image, header= flat_combine.header, overwrite=True, output_verify='ignore')
 
-
+#-----------------------Normalising the flat-----------------------------------
+import flat_normalise
+flat_normalise.response(flat_normalise.data, flat_normalise.ypixels)
+fits.writeto(flat_normalise.output_filename, flat_normalise.final_image, header = flat_normalise.header, overwrite = True, output_verify='ignore')

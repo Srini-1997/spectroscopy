@@ -36,6 +36,7 @@ def average(data_list):
         for j in range(0,xpixels):
             pixels = [data[i,j] for data in data_list]
             final_image[i,j] = np.average(pixels)
+    return final_image
 
 data_list = [fits.open(bfile)[0].data for bfile in bias_files]
 header['NCOMBINE'] = len_bias_files
