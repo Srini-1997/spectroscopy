@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from numpy.polynomial import Legendre, Chebyshev
 import matplotlib.pyplot as plt
-#plt.style.use('dark_background')
+plt.style.use('dark_background')
 
 with open('user_input.txt', 'r') as file:
     lines = file.readlines()
@@ -22,11 +22,11 @@ final_image = np.zeros((ypixels, xpixels))
 #parameters= naverage, function, order, lreject, hreject, iter
 def response(data, ypixels):
     parameters = {
-        "naverage": 0,
+        "naverage": 1,
         "function": "spline",
         "order": 3,
-        "lreject": 3.0,
-        "hreject": 3.0,
+        "lreject": 0,
+        "hreject": 0,
         "iter": 1
     }
     function_options = ["spline", "chebyshev", "legendre"]
@@ -93,7 +93,14 @@ def response(data, ypixels):
         residuals = sample_points - y_fit
         rms_error = np.sqrt(np.mean(residuals**2))
         std_residuals = np.std(residuals)
-        rejected_indices = np.where(np.logical_or(residuals > (np.mean(residuals) + (hreject * std_residuals)), residuals < (np.mean(residuals) - (lreject * std_residuals))))[0]
+        if lreject > 0 and hreject > 0:
+            rejected_indices = np.where(np.logical_or(residuals > (np.mean(residuals) + (hreject * std_residuals)), residuals < (np.mean(residuals) - (lreject * std_residuals))))[0]
+        elif lreject > 0 and hreject ==0:
+            rejected_indices = np.where(residuals < (np.mean(residuals) - (lreject * std_residuals)))[0]
+        elif lreject == 0 and hreject > 0:
+            rejected_indices = np.where(residuals > (np.mean(residuals) + (hreject * std_residuals)))[0]
+        elif lreject == 0 and hreject ==0:
+            rejected_indices = []    
         for index in sorted(rejected_indices, reverse=True):
             if index < len(sample_points) - 1 and index > 0:
                 next_index = index + 1
@@ -116,17 +123,13 @@ def response(data, ypixels):
                 sample_points[index] = sample_points[prev_index]
     
     #--------------------------------Plotting the fit--------------------------------------
-    fig = plt.figure(figsize=(7,7), facecolor='black')
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], facecolor='black')
-    ax.plot(pixels, normalised_data, c ='red')
-    ax.plot(sample_pixels,y_fit, ls='--', c="white")
-    ax.grid(True, color='grey')
-    ax.set_xlabel("Dispersion axis pixels", color='white')
-    ax.set_ylabel("Counts", color='white')
-    ax.set_title("naverage: {}, function: {}, order: {}, lreject:{}, hreject: {}, iter: {}, rms = {}".format(naverage, function, order, lreject, hreject, iter, rms_error, color='white'))
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-    plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
+    plt.figure(figsize=(7,7), facecolor='black')
+    plt.plot(pixels, normalised_data, c ='red')
+    plt.plot(sample_pixels,y_fit, ls='--', c="white")
+    plt.grid(True, color='grey')
+    plt.xlabel("Dispersion axis pixels", color='white')
+    plt.ylabel("Counts", color='white')
+    plt.title("naverage: {}, function: {}, order: {}, lreject:{}, hreject: {}, iter: {}, rms = {}".format(naverage, function, order, lreject, hreject, iter, rms_error, color='white'))
     plt.show()
 
     #-----------------------------Checking the fit--------------------------------
@@ -193,7 +196,14 @@ def response(data, ypixels):
                 residuals = sample_points - y_fit
                 rms_error = np.sqrt(np.mean(residuals**2))
                 std_residuals = np.std(residuals)
-                rejected_indices = np.where(np.logical_or(residuals > (np.mean(residuals) + (hreject * std_residuals)), residuals < (np.mean(residuals) - (lreject * std_residuals))))[0]
+                if lreject > 0 and hreject > 0:
+                    rejected_indices = np.where(np.logical_or(residuals > (np.mean(residuals) + (hreject * std_residuals)), residuals < (np.mean(residuals) - (lreject * std_residuals))))[0]
+                elif lreject > 0 and hreject ==0:
+                    rejected_indices = np.where(residuals < (np.mean(residuals) - (lreject * std_residuals)))[0]
+                elif lreject == 0 and hreject > 0:
+                    rejected_indices = np.where(residuals > (np.mean(residuals) + (hreject * std_residuals)))[0]
+                elif lreject == 0 and hreject ==0:
+                    rejected_indices = [] 
                 for index in sorted(rejected_indices, reverse=True):
                     if index < len(sample_points) - 1 and index > 0:
                         next_index = index + 1
@@ -216,15 +226,15 @@ def response(data, ypixels):
                         sample_points[index] = sample_points[prev_index]
     
     
-            fig = plt.figure(figsize=(7,7))
-            ax = fig.add_axes([0,0,1,1])
-            ax.plot(pixels, normalised_data, c ='red')
-            ax.plot(sample_pixels,y_fit, ls='--', c="white")
-            ax.grid(True, color='grey')
-            ax.set_xlabel("Dispersion axis pixels")
-            ax.set_ylabel("Counts")
-            ax.set_title("naverage: {}, function: {}, order: {}, lreject:{}, hreject: {}, iter: {}, rms = {}".format(naverage, function, order, lreject, hreject, iter, rms_error))
+            plt.figure(figsize=(7,7), facecolor='black')
+            plt.plot(pixels, normalised_data, c ='red')
+            plt.plot(sample_pixels,y_fit, ls='--', c="white")
+            plt.grid(True, color='grey')
+            plt.xlabel("Dispersion axis pixels", color='white')
+            plt.ylabel("Counts", color='white')
+            plt.title("naverage: {}, function: {}, order: {}, lreject:{}, hreject: {}, iter: {}, rms = {}".format(naverage, function, order, lreject, hreject, iter, rms_error, color='white'))
             plt.show()
+
 
             continue
         else:
@@ -249,4 +259,4 @@ output_filename = os.path.join(path,'nmflat.fits')
 
 
 
-'''Spline fit can be done only upto order 5. Legendre fit is not working and have not yet tested the chebyshev fit'''
+'''Spline fit can be done only upto order 5. Legendre fit is not working and have not yet tested the chebyshev fit. Incorporate odd naverage'''

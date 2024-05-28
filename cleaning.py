@@ -6,27 +6,31 @@ import os
 import user_call
 import bias_combine
 
+with open('user_input.txt', 'r') as file:
+    lines = file.readlines()
 
+path = lines[0].strip()
+src = lines[3].strip()
+std = lines[4].strip()
+src_lamp = lines[5].strip()
+std_lamp = lines[6].strip()
 
+src_data = fits.open(src)
+src_header = src_data[0].header
+xpixels = src_header['NAXIS1']
+ypixels = src_header['NAXIS2']
 
-'''flat_list = input("Enter the list of flat frames")
-standard = input("Enter the name of standard star file")
+std_data = fits.open(std)
+std_header = std_data[0].header
 
-while True:
-    arc = input("Do you have separate arc lamp for source and standard star(y/n)")
-    if arc=='y':
-        src_arc_lamp = input("Enter the arc lamp for source")
-        standard_arc_lamp = input("Enter the arc lamp for standard")
-        break
-    elif arc=='n':
-        src_arc_lamp = standard_arc_lamp = input("Enter the lamp")
-        break
-    else:
-        print("Wrong Choice")
-        continue
-'''
+src_lamp_data = fits.open(src_lamp)
+src_lamp_header = src_lamp_data[0].header
+
+std_lamp_data = fits.open(std_lamp)
+std_lamp_header = std_lamp_data[0].header
 
 #----------------------------Bias Combine--------------------------------
+
 bias_combine_dict = {
     'median': bias_combine.median,
     'average': bias_combine.average
@@ -35,7 +39,7 @@ while True:
     while True:
         interactive_mode = input("Do you want to proceed in parameter changing mode? (y/n): ")
         if interactive_mode=='y':
-            bias_combine_mode_input = input("Enter the desired combining mode(median/average) : ")
+            bias_combine_mode_input = input("Enter the desired combining mode(median/average): ")
             break
         elif interactive_mode=='n':
             bias_combine_mode_input = "median"
@@ -77,3 +81,39 @@ fits.writeto(flat_combine.output_filename, flat_combine.final_image, header= fla
 import flat_normalise
 flat_normalise.response(flat_normalise.data, flat_normalise.ypixels)
 fits.writeto(flat_normalise.output_filename, flat_normalise.final_image, header = flat_normalise.header, overwrite = True, output_verify='ignore')
+
+
+#---------------------Dividing the normalised flat------------------------------
+def bf_cor(file):
+    final_image = np.zeros((ypixels, xpixels))
+    mbias = os.path.join(path,'mbias.fits')
+    mbias_data = fits.open(mbias)[0].data
+    nmflat = os.path.join(path,'nmflat.fits')
+    nmflat_data = fits.open(nmflat)[0].data
+    header = mbias_data[0].header
+    xpixels = header['NAXIS1']
+    ypixels = header['NAXIS2']
+    for i in range(0,ypixels):
+        for j in range(0,xpixels):
+            final_image[i,j] = (file [i,j] - mbias_data[i,j])/nmflat_data[i,j]
+    return final_image
+
+src_bf = bf_cor(src)
+std_bf = bf_cor(std)
+src_lamp_bf = bf_cor(src_lamp)
+std_lamp_bf = bf_cor(std_lamp)
+
+output_filename_src = os.path.join(path, src.replace('.fits','bf.fits'))
+fits.writeto(output_filename_src, src_bf, header = src_header, overwrite = True, output_verify='ignore')
+
+output_filename_std = os.path.join(path, std.replace('.fits','bf.fits'))
+fits.writeto(output_filename_std, std_bf, header = std_header, overwrite = True, output_verify='ignore')
+
+output_filename_src_lamp = os.path.join(path, src_lamp.replace('.fits','f.fits'))
+fits.writeto(output_filename_src_lamp, src_lamp_bf, header = src_lamp_header, overwrite = True, output_verify='ignore')
+
+output_filename_std_lamp = os.path.join(path, std_lamp.replace('.fits','f.fits'))
+fits.writeto(output_filename_std_lamp, std_lamp_bf, header = std_lamp_header, overwrite = True, output_verify='ignore')
+
+
+
