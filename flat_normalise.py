@@ -1,3 +1,4 @@
+#---------------------Replica of response task----------------
 from astropy.io import fits
 import os 
 import numpy as np
@@ -6,7 +7,7 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from numpy.polynomial import Legendre, Chebyshev
 import matplotlib.pyplot as plt
-plt.style.use('dark_background')
+#plt.style.use('dark_background')
 
 with open('user_input.txt', 'r') as file:
     lines = file.readlines()
@@ -17,7 +18,7 @@ mflat = os.path.join(path, 'mflat.fits')
 header = fits.open(mflat)[0].header
 xpixels = header['NAXIS1']
 ypixels = header['NAXIS2']
-
+final_image = np.zeros((ypixels, xpixels))
 #parameters= naverage, function, order, lreject, hreject, iter
 def response(data, ypixels):
     parameters = {
@@ -93,19 +94,39 @@ def response(data, ypixels):
         rms_error = np.sqrt(np.mean(residuals**2))
         std_residuals = np.std(residuals)
         rejected_indices = np.where(np.logical_or(residuals > (np.mean(residuals) + (hreject * std_residuals)), residuals < (np.mean(residuals) - (lreject * std_residuals))))[0]
-        sample_pixels = np.delete(sample_pixels, rejected_indices)
-        sample_points = np.delete(sample_points, rejected_indices)
-        y_fit = np.delete(y_fit, rejected_indices)
-
+        for index in sorted(rejected_indices, reverse=True):
+            if index < len(sample_points) - 1 and index > 0:
+                next_index = index + 1
+                while next_index in rejected_indices and next_index < len(sample_points) - 1:
+                    next_index += 1
+                prev_index = index - 1
+                while prev_index in rejected_indices and prev_index > 0:
+                    prev_index -= 1
+                mean_point = (sample_points[prev_index] + sample_points[next_index]) / 2
+                sample_points[index] = mean_point
+            elif index == 0:
+                next_index = index + 1
+                while next_index in rejected_indices and next_index < len(sample_points) - 1:
+                    next_index += 1
+                sample_points[index] = sample_points[next_index]
+            elif index == len(sample_points) - 1:
+                prev_index = index - 1
+                while prev_index in rejected_indices and prev_index > 0:
+                    prev_index -= 1
+                sample_points[index] = sample_points[prev_index]
+    
     #--------------------------------Plotting the fit--------------------------------------
-    fig = plt.figure(figsize=(7,7))
-    ax = fig.add_axes([0,0,1,1])
+    fig = plt.figure(figsize=(7,7), facecolor='black')
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8], facecolor='black')
     ax.plot(pixels, normalised_data, c ='red')
     ax.plot(sample_pixels,y_fit, ls='--', c="white")
     ax.grid(True, color='grey')
-    ax.set_xlabel("Dispersion axis pixels")
-    ax.set_ylabel("Counts")
-    ax.set_title("naverage: {}, function: {}, order: {}, lreject:{}, hreject: {}, iter: {}, rms = {}".format(naverage, function, order, lreject, hreject, iter, rms_error))
+    ax.set_xlabel("Dispersion axis pixels", color='white')
+    ax.set_ylabel("Counts", color='white')
+    ax.set_title("naverage: {}, function: {}, order: {}, lreject:{}, hreject: {}, iter: {}, rms = {}".format(naverage, function, order, lreject, hreject, iter, rms_error, color='white'))
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
+    plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
     plt.show()
 
     #-----------------------------Checking the fit--------------------------------
@@ -173,9 +194,27 @@ def response(data, ypixels):
                 rms_error = np.sqrt(np.mean(residuals**2))
                 std_residuals = np.std(residuals)
                 rejected_indices = np.where(np.logical_or(residuals > (np.mean(residuals) + (hreject * std_residuals)), residuals < (np.mean(residuals) - (lreject * std_residuals))))[0]
-                sample_pixels = np.delete(sample_pixels, rejected_indices)
-                sample_points = np.delete(sample_points, rejected_indices)
-                y_fit = np.delete(y_fit, rejected_indices)
+                for index in sorted(rejected_indices, reverse=True):
+                    if index < len(sample_points) - 1 and index > 0:
+                        next_index = index + 1
+                        while next_index in rejected_indices and next_index < len(sample_points) - 1:
+                            next_index += 1
+                        prev_index = index - 1
+                        while prev_index in rejected_indices and prev_index > 0:
+                            prev_index -= 1
+                        mean_point = (sample_points[prev_index] + sample_points[next_index]) / 2
+                        sample_points[index] = mean_point
+                    elif index == 0:
+                        next_index = index + 1
+                        while next_index in rejected_indices and next_index < len(sample_points) - 1:
+                            next_index += 1
+                        sample_points[index] = sample_points[next_index]
+                    elif index == len(sample_points) - 1:
+                        prev_index = index - 1
+                        while prev_index in rejected_indices and prev_index > 0:
+                            prev_index -= 1
+                        sample_points[index] = sample_points[prev_index]
+    
     
             fig = plt.figure(figsize=(7,7))
             ax = fig.add_axes([0,0,1,1])
@@ -193,7 +232,10 @@ def response(data, ypixels):
             continue
     if abs(int(naverage)) != 1:
         y_fit = np.interp(pixels, sample_pixels, y_fit) 
-    final_image = np.divide(data, y_fit[:, np.newaxis]) 
+    
+    for i in range(0,ypixels):
+        for j in range(0,xpixels):
+            final_image[i,j] = data[i,j]/y_fit[i] 
     return final_image
 
 data = fits.open(mflat)[0].data
@@ -202,3 +244,9 @@ pixels = np.arange(0,ypixels,1)
 
 
 output_filename = os.path.join(path,'nmflat.fits')
+
+
+
+
+
+'''Spline fit can be done only upto order 5. Legendre fit is not working and have not yet tested the chebyshev fit'''
