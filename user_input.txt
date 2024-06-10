@@ -1,3 +1,7 @@
 /home/srinivas/Documents/observation_data_copy/Test/source_1
 bias*
 hal*
+J0746m1611.fits
+Feige_34.fits
+J0746m1611_FeAr.fits
+Feige_34_FeAr.fits

@@ -10,24 +10,25 @@ with open('user_input.txt', 'r') as file:
     lines = file.readlines()
 
 path = lines[0].strip()
-src = lines[3].strip()
-std = lines[4].strip()
-src_lamp = lines[5].strip()
-std_lamp = lines[6].strip()
+src = os.path.join(path,lines[3].strip())
+std = os.path.join(path,lines[4].strip())
+src_lamp = os.path.join(path,lines[5].strip())
+std_lamp = os.path.join(path,lines[6].strip())
 
-src_data = fits.open(src)
-src_header = src_data[0].header
+
+src_data = fits.open(src)[0].data
+src_header = fits.open(src)[0].header
 xpixels = src_header['NAXIS1']
 ypixels = src_header['NAXIS2']
 
-std_data = fits.open(std)
-std_header = std_data[0].header
+std_data = fits.open(std)[0].data
+std_header = fits.open(std)[0].header
 
-src_lamp_data = fits.open(src_lamp)
-src_lamp_header = src_lamp_data[0].header
+src_lamp_data = fits.open(src_lamp)[0].data
+src_lamp_header = fits.open(src_lamp)[0].header
 
-std_lamp_data = fits.open(std_lamp)
-std_lamp_header = std_lamp_data[0].header
+std_lamp_data = fits.open(std_lamp)[0].data
+std_lamp_header = fits.open(std_lamp)[0].header
 
 #----------------------------Bias Combine--------------------------------
 
@@ -85,23 +86,24 @@ fits.writeto(flat_normalise.output_filename, flat_normalise.final_image, header 
 
 #---------------------Dividing the normalised flat------------------------------
 def bf_cor(file):
+    global ypixels, xpixels
     final_image = np.zeros((ypixels, xpixels))
     mbias = os.path.join(path,'mbias.fits')
     mbias_data = fits.open(mbias)[0].data
     nmflat = os.path.join(path,'nmflat.fits')
     nmflat_data = fits.open(nmflat)[0].data
-    header = mbias_data[0].header
+    header = fits.open(mbias)[0].header
     xpixels = header['NAXIS1']
     ypixels = header['NAXIS2']
     for i in range(0,ypixels):
         for j in range(0,xpixels):
-            final_image[i,j] = (file [i,j] - mbias_data[i,j])/nmflat_data[i,j]
+            final_image[i,j] = (file[i,j] - mbias_data[i,j])/nmflat_data[i,j]
     return final_image
 
-src_bf = bf_cor(src)
-std_bf = bf_cor(std)
-src_lamp_bf = bf_cor(src_lamp)
-std_lamp_bf = bf_cor(std_lamp)
+src_bf = bf_cor(src_data)
+std_bf = bf_cor(std_data)
+src_lamp_bf = bf_cor(src_lamp_data)
+std_lamp_bf = bf_cor(std_lamp_data)
 
 output_filename_src = os.path.join(path, src.replace('.fits','bf.fits'))
 fits.writeto(output_filename_src, src_bf, header = src_header, overwrite = True, output_verify='ignore')

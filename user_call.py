@@ -10,7 +10,7 @@ flat_list = input("Enter the flat frames: ")
 with open("user_input.txt", 'a') as f:
     f.write("\n"+flat_list)
 
-'''src = input("Enter the name of source frame: ")
+src = input("Enter the name of source frame: ")
 with open("user_input.txt", "a") as f:
     f.write("\n"+src)
 
@@ -37,5 +37,4 @@ while True:
     else:
         print("Wrong Choice")
         continue
-'''
 
