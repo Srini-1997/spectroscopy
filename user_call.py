@@ -38,3 +38,10 @@ while True:
         print("Wrong Choice")
         continue
 
+readnoise = input("Enter the read noise of the CCD")
+with open("user_input.txt", 'a') as f:
+    f.write("\n"+readnoise)
+
+gain = input("Enter the gain of the CCD")
+with open("user_input.txt", 'a') as f:
+    f.write("\n"+gain)

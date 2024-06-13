@@ -111,11 +111,29 @@ fits.writeto(output_filename_src, src_bf, header = src_header, overwrite = True,
 output_filename_std = os.path.join(path, std.replace('.fits','bf.fits'))
 fits.writeto(output_filename_std, std_bf, header = std_header, overwrite = True, output_verify='ignore')
 
-output_filename_src_lamp = os.path.join(path, src_lamp.replace('.fits','f.fits'))
+output_filename_src_lamp = os.path.join(path, src_lamp.replace('.fits','bf.fits'))
 fits.writeto(output_filename_src_lamp, src_lamp_bf, header = src_lamp_header, overwrite = True, output_verify='ignore')
 
-output_filename_std_lamp = os.path.join(path, std_lamp.replace('.fits','f.fits'))
+output_filename_std_lamp = os.path.join(path, std_lamp.replace('.fits','bf.fits'))
 fits.writeto(output_filename_std_lamp, std_lamp_bf, header = std_lamp_header, overwrite = True, output_verify='ignore')
 
+#-------------------------------Cosmic ray correction-----------------------
+import cosmic_correction
+
+src_bfc = cosmic_correction.cosmic(src_bf)
+output_filename_src_bfc = os.path.join(path, output_filename_src.replace('bf.fits','bfc.fits'))
+fits.writeto(output_filename_src_bfc, src_bfc, header=src_header, overwrite=True, output_verify='ignore') 
+
+std_bfc = cosmic_correction.cosmic(std_bf)
+output_filename_std_bfc = os.path.join(path, output_filename_std.replace('bf.fits','bfc.fits'))
+fits.writeto(output_filename_std_bfc, std_bfc, header=std_header, overwrite=True, output_verify='ignore') 
+
+src_lamp_bfc = cosmic_correction.cosmic(src_lamp_bf)
+output_filename_src_lamp_bfc = os.path.join(path, output_filename_src_lamp.replace('bf.fits','bfc.fits'))
+fits.writeto(output_filename_src_lamp_bfc, src_lamp_bfc, header=src_lamp_header, overwrite=True, output_verify='ignore') 
+
+std_lamp_bfc = cosmic_correction.cosmic(std_lamp_bf)
+output_filename_std_lamp_bfc = os.path.join(path, output_filename_std_lamp.replace('bf.fits','bfc.fits'))
+fits.writeto(output_filename_std_lamp_bfc, std_lamp_bfc, header=std_lamp_header, overwrite=True, output_verify='ignore') 
 
 
