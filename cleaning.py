@@ -97,7 +97,10 @@ def bf_cor(file):
     ypixels = header['NAXIS2']
     for i in range(0,ypixels):
         for j in range(0,xpixels):
-            final_image[i,j] = (file[i,j] - mbias_data[i,j])/nmflat_data[i,j]
+            if nmflat_data[i,j] != 0:
+                final_image[i,j] = (file[i,j] - mbias_data[i,j]) / nmflat_data[i,j]
+            else:
+                final_image[i,j] = 0
     return final_image
 
 src_bf = bf_cor(src_data)
