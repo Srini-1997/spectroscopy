@@ -124,19 +124,30 @@ fits.writeto(output_filename_std_lamp, std_lamp_bf, header = std_lamp_header, ov
 import cosmic_correction
 
 src_bfc = cosmic_correction.cosmic(src_bf)
-output_filename_src_bfc = os.path.join(path, output_filename_src.replace('bf.fits','bfc.fits'))
+output_filename_src_bfc = os.path.join(path, output_filename_src.replace('bf.fits','src_bfc.fits'))
 fits.writeto(output_filename_src_bfc, src_bfc, header=src_header, overwrite=True, output_verify='ignore') 
 
 std_bfc = cosmic_correction.cosmic(std_bf)
-output_filename_std_bfc = os.path.join(path, output_filename_std.replace('bf.fits','bfc.fits'))
+output_filename_std_bfc = os.path.join(path, output_filename_std.replace('bf.fits','std_bfc.fits'))
 fits.writeto(output_filename_std_bfc, std_bfc, header=std_header, overwrite=True, output_verify='ignore') 
 
 src_lamp_bfc = cosmic_correction.cosmic(src_lamp_bf)
-output_filename_src_lamp_bfc = os.path.join(path, output_filename_src_lamp.replace('bf.fits','bfc.fits'))
+output_filename_src_lamp_bfc = os.path.join(path, output_filename_src_lamp.replace('bf.fits','src_lamp_bfc.fits'))
 fits.writeto(output_filename_src_lamp_bfc, src_lamp_bfc, header=src_lamp_header, overwrite=True, output_verify='ignore') 
 
 std_lamp_bfc = cosmic_correction.cosmic(std_lamp_bf)
-output_filename_std_lamp_bfc = os.path.join(path, output_filename_std_lamp.replace('bf.fits','bfc.fits'))
+output_filename_std_lamp_bfc = os.path.join(path, output_filename_std_lamp.replace('bf.fits','std_lamp_bfc.fits'))
 fits.writeto(output_filename_std_lamp_bfc, std_lamp_bfc, header=std_lamp_header, overwrite=True, output_verify='ignore') 
 
+
+#--------------------------------------Aperture Extraction---------------------------------
+import aperture
+
+final_image_src_bfcap , header_src_bfcap, final_image_src_lamp_bfcap, header_src_lamp_bfcap = aperture.aperture(aperture.source, aperture.source_lamp) 
+fits.writeto(aperture.output_filename_src, final_image_src_bfcap, header = header_src_bfcap, overwrite = True, output_verify='ignore')
+fits.writeto(aperture.output_filename_src_lamp, final_image_src_lamp_bfcap, header = header_src_lamp_bfcap, overwrite = True, output_verify='ignore')
+
+final_image_std_bfcap , header_std_bfcap, final_image_std_lamp_bfcap, header_std_lamp_bfcap = aperture.aperture(aperture.standard, aperture.standard_lamp) 
+fits.writeto(aperture.output_filename_std, final_image_std_bfcap, header = header_std_bfcap, overwrite = True, output_verify='ignore')
+fits.writeto(aperture.output_filename_std_lamp, final_image_std_lamp_bfcap, header = header_std_lamp_bfcap, overwrite = True, output_verify='ignore')
 
